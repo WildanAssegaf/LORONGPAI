@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lorong Waktu – Puzzle Adventure PAI Kelas 9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --ink:#17224D; --muted:#4A5578; --paper:#fff; --soft:#EEF2FA; --line:#C9D3EA;
+  --gold:#F2A93B; --ok:#157A55; --okbg:#DDF3E8; --bad:#B3243B; --badbg:#FBE4E8;
+}
+body[data-theme="start"],body[data-theme="akhir"]{--bg:#14224F;--sky1:#1E2F6B;--sky2:#5B73D1;--sil:#0E1A45;--accent:#F2A93B;--btn-bg:#F2A93B;--btn-fg:#17224D}
+body[data-theme="fatimiyah"]{--bg:#0B4F4A;--sky1:#0B6E7A;--sky2:#F0B25C;--sil:#0A3A3F;--accent:#0B7A71;--btn-bg:#0B7A71;--btn-fg:#fff}
+body[data-theme="mongol"]{--bg:#3A2D45;--sky1:#2B3558;--sky2:#D9704B;--sil:#1F1A2E;--accent:#B93A2B;--btn-bg:#B93A2B;--btn-fg:#fff}
+body[data-theme="usmani"]{--bg:#58132A;--sky1:#3B2A7A;--sky2:#E8A24E;--sil:#3A0F22;--accent:#A81D37;--btn-bg:#A81D37;--btn-fg:#fff}
+
+body{
+  margin:0;min-height:100vh;padding:20px 12px 48px;
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);line-height:1.55;
+  background-color:var(--bg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.09' stroke-width='1.5'%3E%3Crect x='16' y='16' width='32' height='32'/%3E%3Crect x='16' y='16' width='32' height='32' transform='rotate(45 32 32)'/%3E%3C/g%3E%3C/svg%3E");
+  transition:background-color .6s;
+}
+.book{
+  position:relative;max-width:760px;margin:0 auto;background:var(--paper);
+  border:4px solid var(--gold);border-radius:22px;overflow:hidden;
+  box-shadow:0 18px 44px rgba(0,0,0,.4);
+}
+.book::after{content:"";position:absolute;inset:9px;border:1px solid var(--gold);border-radius:14px;pointer-events:none;opacity:.85}
+
+.scene{position:relative;height:200px;background:linear-gradient(180deg,var(--sky1),var(--sky2))}
+.scene svg{position:absolute;inset:0;width:100%;height:100%}
+.ttl{position:absolute;left:30px;right:30px;top:26px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+.ttl h1{font-family:Amiri,Georgia,serif;font-weight:700;font-size:clamp(1.9rem,6.5vw,2.8rem);line-height:1.1;margin:0}
+.ttl p{margin:6px 0 0;font-weight:600}
+
+.hud{padding:14px 28px 12px;background:var(--soft);border-bottom:1px solid var(--line)}
+.trail{position:relative;display:flex;justify-content:space-between}
+.trail::before{content:"";position:absolute;left:32px;right:32px;top:17px;height:3px;background:var(--line)}
+.node{position:relative;width:64px;display:grid;justify-items:center;gap:4px;font-size:.74rem;font-weight:800;color:var(--muted)}
+.dot{width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid var(--line);display:grid;place-items:center}
+.node.done .dot{background:var(--gold);border-color:var(--gold)}
+.node.now .dot{border-color:var(--accent);box-shadow:0 0 0 4px rgba(23,34,77,.1)}
+.node.now{color:var(--ink)}
+.hudscore{margin-top:10px;font-weight:700;color:var(--muted);font-size:.9rem}
+.hudscore b{font-family:Amiri,Georgia,serif;font-size:1.4rem;color:var(--ink)}
+
+.panel{padding:26px 30px 34px}
+.panel h2{font-family:Amiri,Georgia,serif;font-size:1.7rem;line-height:1.2;margin:0 0 10px}
+.panel p{margin:0 0 14px;max-width:62ch}
+.story{font-size:1.08rem}
+.sub{color:var(--muted);font-weight:600}
+
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;min-height:46px;cursor:pointer;background:var(--btn-bg);color:var(--btn-fg)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+
+/* form */
+.fld{display:block;margin-bottom:14px}
+.fld span{display:block;font-weight:800;margin-bottom:4px}
+.fld input,.wi{width:100%;font:inherit;font-size:1.05rem;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.fld input:focus,.wi:focus{border-color:var(--accent)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.howto{margin:20px 0 0;padding:14px 16px;background:var(--soft);border-radius:12px;font-size:.95rem}
+.howto ul{margin:6px 0 0;padding-left:20px}
+.err{color:var(--bad);font-weight:700;min-height:1.4em;margin:0 0 8px}
+
+/* puzzle */
+.qhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-weight:800;color:var(--muted);font-size:.92rem;margin-bottom:6px}
+.pot b{color:var(--ink);font-size:1.1rem}
+.q{font-family:Nunito,system-ui,sans-serif!important;font-weight:800;font-size:1.25rem!important;line-height:1.4!important}
+.board{margin-top:14px}
+.board.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-weight:600;padding:13px 16px;margin-bottom:10px;background:#fff;border:2px solid var(--line);border-radius:12px;color:var(--ink);cursor:pointer;min-height:48px}
+.opt:hover:not(:disabled){background:var(--soft)}
+.opt:disabled{opacity:1;cursor:default}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}
+.opt.no{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.opt.chk{position:relative;padding-left:48px}
+.opt.chk::before{content:"";position:absolute;left:15px;top:50%;width:20px;height:20px;margin-top:-10px;border:2px solid var(--muted);border-radius:5px;background:#fff}
+.opt.chk[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.opt.chk[aria-pressed="true"]::before{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.mcol{display:flex;flex-direction:column;gap:10px}
+.mitem{font:inherit;font-weight:600;text-align:left;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;min-height:56px;font-size:.95rem}
+.mitem.sel{border-style:dashed;border-color:var(--accent);background:var(--soft)}
+.mitem.p0{background:#FDEFD3;border-color:#E39A1F}
+.mitem.p1{background:#D5F1EE;border-color:#139A8F}
+.mitem.p2{background:#F9DCE3;border-color:#C2304F}
+.mitem.p3{background:#DCE3F8;border-color:#4A62C4}
+.mitem.ok{background:var(--okbg);border-color:var(--ok)}
+.mitem:disabled{opacity:1;cursor:default}
+
+.olist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.olist li{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border:2px solid var(--line);border-radius:12px;background:#fff}
+.olist li.ok{background:var(--okbg);border-color:var(--ok)}
+.pos{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
+.olist .t{flex:1;font-weight:600}
+.mv{display:flex;gap:6px}
+.mv button{width:42px;height:42px;border-radius:10px;border:2px solid var(--line);background:var(--soft);color:var(--ink);font-size:.95rem;cursor:pointer}
+.mv button:disabled{opacity:.3;cursor:default}
+
+.wl{display:block;font-weight:800;margin-bottom:6px}
+.hintbox{margin-top:14px;padding:12px 14px;border-left:5px solid var(--gold);background:#FFF6E2;border-radius:8px;font-weight:600}
+.fb{margin-top:14px;padding:0;font-weight:600;min-height:0}
+.fb.ok,.fb.bad{padding:12px 14px;border-radius:10px}
+.fb.ok{background:var(--okbg);color:#0D4D36}
+.fb.bad{background:var(--badbg);color:#7C1527}
+
+/* chapter done / result */
+.center{text-align:center}
+.keyicon{width:96px;height:96px;margin:0 auto 6px;animation:pop .7s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-50deg);opacity:0}to{transform:none;opacity:1}}
+.recap{margin:14px 0 0;padding:14px 16px 14px 34px;background:var(--soft);border-radius:12px;max-width:62ch;text-align:left}
+.recap li{margin-bottom:6px}
+.bignum{font-family:Amiri,Georgia,serif;font-size:4.6rem;font-weight:700;line-height:1;margin:6px 0 0}
+.bignum small{font-size:1.3rem;color:var(--muted);font-weight:400}
+.rank{font-family:Amiri,Georgia,serif;font-size:1.6rem;margin:4px 0 14px}
+.bars{display:grid;gap:10px;margin:18px 0;text-align:left}
+.bar{display:grid;grid-template-columns:110px 1fr 56px;gap:10px;align-items:center;font-weight:700;font-size:.92rem}
+.track{height:14px;background:var(--soft);border-radius:8px;overflow:hidden}
+.fill{height:100%;background:var(--gold);border-radius:8px}
+.send{margin:16px 0;padding:12px 14px;border-radius:10px;font-weight:700;background:var(--soft)}
+.send.ok{background:var(--okbg);color:#0D4D36}
+.send.bad{background:var(--badbg);color:#7C1527}
+.hikmah{text-align:left;margin:16px 0 0;padding:14px 16px;border-left:5px solid var(--accent);background:var(--soft);border-radius:8px}
+.idrow{font-weight:700;color:var(--muted);margin-bottom:6px}
+
+@media (max-width:560px){
+  body{padding:10px 8px 36px}
+  .panel{padding:22px 18px 28px}
+  .hud{padding:12px 14px 10px}
+  .ttl{left:22px;right:22px}
+  .match{grid-template-columns:1fr}
+  .bar{grid-template-columns:84px 1fr 48px}
+  .row{grid-template-columns:1fr}
+  .node{width:56px;font-size:.7rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .keyicon,.board.shake{animation:none}
+  body{transition:none}
+}
+</style>
+</head>
+<body data-theme="start">
+
+<main class="book" id="book">
+  <header class="scene" id="scene" aria-hidden="false"></header>
+  <nav class="hud" id="hud" hidden aria-label="Kemajuan petualangan"></nav>
+  <section class="panel" id="panel" tabindex="-1"></section>
+</main>
+
+<script>
+/* =====================================================================
+   PENGATURAN GURU
+   Tempel URL "Web app" dari Google Apps Script di antara tanda kutip.
+   Contoh: "https://script.google.com/macros/s/AKfycb.../exec"
+   ===================================================================== */
+const CONFIG = { SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwF4qx6KQQqUrMdc8-yAla54cp3pbXhUZ0gu2rADNDx_XypsZbt7lumtg1d8w896l0Suw/exec" };
+
+/* ------------------------- Helper ------------------------- */
+const $ = s => document.querySelector(s);
+const panel = $('#panel'), hud = $('#hud'), scene = $('#scene');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ------------------------- Adegan (SVG) ------------------------- */
+const minaret=(x,h)=>`<rect x="${x-6}" y="${172-h}" width="12" height="${h}"/><rect x="${x-10}" y="${172-h+20}" width="20" height="5"/><path d="M${x-7} ${172-h}L${x} ${172-h-28}L${x+7} ${172-h}Z"/>`;
+const dome=(cx,w,wall,dh)=>{const top=172-wall-dh;return `<path d="M${cx-w} 172V${172-wall}A${w} ${dh} 0 0 1 ${cx+w} ${172-wall}V172Z"/><rect x="${cx-1.5}" y="${top-14}" width="3" height="15"/><circle cx="${cx}" cy="${top-16}" r="4"/>`};
+const yurt=(x)=>`<rect x="${x}" y="140" width="60" height="32"/><path d="M${x-8} 142L${x+30} 114L${x+68} 142Z"/>`;
+const spear=(x)=>`<rect x="${x}" y="108" width="2.5" height="64"/><path d="M${x-3} 110L${x+1.25} 96L${x+5.5} 110Z"/>`;
+
+const SCENES={
+  fatimiyah:()=>`<circle cx="640" cy="66" r="32" fill="#FFE9A8" opacity=".92"/>
+    <g fill="var(--sil)"><rect x="0" y="172" width="800" height="18"/><rect x="250" y="148" width="300" height="24"/>
+    ${dome(400,70,22,56)}${dome(290,38,16,28)}${dome(510,38,16,28)}
+    ${minaret(190,112)}${minaret(610,112)}${minaret(120,80)}${minaret(690,86)}</g>`,
+  mongol:()=>`<circle cx="610" cy="176" r="70" fill="#FF8A3D" opacity=".38"/>
+    <path d="M590 140C578 108 614 96 598 62S620 20 606 -10" stroke="#241E33" stroke-width="12" fill="none" opacity=".4" stroke-linecap="round"/>
+    <path d="M660 146C650 118 680 106 668 80S686 44 676 20" stroke="#241E33" stroke-width="9" fill="none" opacity=".35" stroke-linecap="round"/>
+    <g fill="var(--sil)"><rect x="0" y="172" width="800" height="18"/>
+    ${yurt(40)}${yurt(120)}${spear(250)}${spear(272)}${spear(294)}${spear(316)}${spear(338)}${spear(360)}
+    <rect x="200" y="96" width="3" height="76"/><circle cx="201.5" cy="94" r="6"/>
+    <path d="M195 98q-7 22 0 36M201.5 100q0 24 0 38M208 98q7 22 0 36" stroke="var(--sil)" stroke-width="2.5" fill="none"/>
+    ${dome(560,36,24,28)}${dome(650,28,14,20)}${minaret(600,92)}${minaret(710,72)}</g>`,
+  usmani:()=>`<path d="M120 30A18 18 0 1 0 120 68A14 14 0 1 1 120 30Z" fill="#FFE9A8" opacity=".95"/>
+    <g fill="var(--sil)"><rect x="0" y="172" width="800" height="18"/><rect x="336" y="130" width="128" height="42"/>
+    ${dome(400,60,40,50)}${dome(325,32,24,30)}${dome(475,32,24,30)}${dome(262,20,12,16)}${dome(538,20,12,16)}
+    ${minaret(215,118)}${minaret(585,118)}${minaret(150,92)}${minaret(650,92)}</g>`
+};
+SCENES.start=()=>`<g transform="translate(-30 88) scale(.4)">${SCENES.fatimiyah()}</g>
+  <g transform="translate(236 88) scale(.4)">${SCENES.mongol()}</g>
+  <g transform="translate(500 88) scale(.4)">${SCENES.usmani()}</g>
+  <rect x="0" y="158" width="800" height="32" fill="var(--sil)"/>`;
+SCENES.akhir=SCENES.start;
+
+function setScene(theme,title,sub){
+  document.body.dataset.theme=theme;
+  scene.innerHTML=`<svg viewBox="0 0 800 190" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Ilustrasi suasana ${esc(title)}">${SCENES[theme]()}</svg>
+    <div class="ttl"><h1>${esc(title)}</h1><p>${esc(sub)}</p></div>`;
+}
+
+/* ------------------------- Materi & teka-teki ------------------------- */
+const CH=[
+{ key:'fatimiyah', theme:'fatimiyah', title:'Kairo, ± 970 M', sub:'Dinasti Fatimiyah', hud:'Kairo', keyName:'Kunci Fatimiyah', nextName:'Baghdad',
+  story:'Debu keemasan Kairo menyambutmu. Di depan gerbang Masjid Al-Azhar, seorang penjaga tua menahan langkahmu: “Hanya yang paham sejarah Fatimiyah boleh membawa lembar kitab ini keluar.” Jawab tiga teka-tekinya.',
+  recap:['Fatimiyah berdiri tahun 909 M di Afrika Utara, didirikan Ubaidillah al-Mahdi; alirannya Syiah Ismailiyah.','Jauhar as-Shiqilli menaklukkan Mesir, membangun kota Kairo dan Masjid Al-Azhar, yang berkembang menjadi pusat ilmu.','Dinasti ini berakhir tahun 1171 M di tangan Salahuddin al-Ayyubi.'],
+  puzzles:[
+  { type:'choice', q:'Siapa pendiri Dinasti Fatimiyah?',
+    options:['Ubaidillah al-Mahdi','Hulagu Khan','Salahuddin al-Ayyubi','Usman bin Ertugrul'], answer:0,
+    hint:'Ia mengaku keturunan Fatimah az-Zahra, putri Rasulullah saw. Dari situlah nama dinasti berasal.',
+    note:'Ubaidillah al-Mahdi mendirikan Fatimiyah tahun 909 M di Afrika Utara. Nama dinasti dinisbatkan kepada Fatimah az-Zahra.' },
+  { type:'match', q:'Pasangkan tokoh atau lembaga dengan peranannya.', sub:'Ketuk satu istilah di kiri, lalu ketuk pasangannya di kanan.',
+    pairs:[['Jauhar as-Shiqilli','Panglima penakluk Mesir (969 M) yang membangun Kairo'],
+           ['Al-Azhar','Masjid yang berkembang menjadi pusat pendidikan Islam'],
+           ['Dar al-Hikmah','Perpustakaan dan lembaga ilmu di Kairo'],
+           ['Salahuddin al-Ayyubi','Pengakhir Fatimiyah (1171 M), pendiri Ayyubiyah']],
+    hint:'Kairo dan Al-Azhar dibangun oleh seorang panglima. Dar al-Hikmah adalah tempat para ilmuwan bekerja.',
+    note:'Jauhar as-Shiqilli membangun Kairo dan Al-Azhar. Dar al-Hikmah mendukung kegiatan ilmu pengetahuan. Salahuddin mengakhiri Fatimiyah tahun 1171 M.' },
+  { type:'order', q:'Susun peristiwa Fatimiyah dari yang paling awal ke yang paling akhir.', sub:'Gunakan tombol ▲ dan ▼ untuk memindahkan.',
+    items:['Ubaidillah al-Mahdi mendirikan Dinasti Fatimiyah di Afrika Utara','Jauhar as-Shiqilli menaklukkan Mesir dan membangun kota Kairo','Khalifah Al-Mu’izz memindahkan pusat pemerintahan ke Kairo','Salahuddin al-Ayyubi mengakhiri Dinasti Fatimiyah'],
+    hint:'Pendiri dinasti lebih dulu daripada penakluk Mesir. Tokoh Ayyubiyah muncul paling akhir.',
+    note:'Urutannya: 909 M → 969 M → 973 M → 1171 M.' }
+  ]},
+{ key:'mongol', theme:'mongol', title:'Baghdad, 1258 M', sub:'Serangan Bangsa Mongol', hud:'Baghdad', keyName:'Kunci Mongol', nextName:'Istanbul',
+  story:'Langit Baghdad kelabu oleh asap. Pasukan berkuda Mongol mengepung kota di tepi sungai. Seorang pustakawan berbisik, “Lembar kitab ini hanya kuberikan kepada yang tahu apa yang terjadi di sini.”',
+  recap:['Jengis Khan menyatukan suku Mongol (1206 M). Cucunya, Hulagu Khan, menghancurkan Baghdad tahun 1258 M dan mengakhiri Abbasiyah di Baghdad.','Pasukan Mamluk menghentikan laju Mongol di Ain Jalut (1260 M).','Beberapa penguasa Mongol kemudian memeluk Islam, antara lain Ghazan Khan.'],
+  puzzles:[
+  { type:'choice', q:'Siapa pemimpin pasukan Mongol yang menyerbu dan menghancurkan Baghdad tahun 1258 M?',
+    options:['Hulagu Khan','Jengis Khan','Timur Lenk','Muhammad al-Fatih'], answer:0,
+    hint:'Ia cucu pendiri imperium Mongol dan memimpin pasukan ke arah barat.',
+    note:'Hulagu Khan, cucu Jengis Khan, menyerbu Baghdad. Khalifah Al-Musta’sim, khalifah Abbasiyah terakhir di Baghdad, gugur.' },
+  { type:'word', q:'Sungai apakah yang membelah kota Baghdad? Konon airnya menghitam oleh tinta buku-buku yang dibuang ke dalamnya.', sub:'Petunjuk huruf: T _ _ _ _ _ (6 huruf).',
+    answers:['tigris','dijlah','dajlah','sungaitigris','sungaidijlah'], placeholder:'Nama sungai…',
+    hint:'Dimulai dengan huruf T. Dalam bahasa Arab sungai ini disebut Dijlah.',
+    note:'Sungai Tigris (Dijlah) membelah Baghdad. Kisah masyhur menyebut buku-buku perpustakaan dibuang ke sungai ini saat kota jatuh.' },
+  { type:'match', q:'Pasangkan istilah dengan penjelasan yang tepat.', sub:'Ketuk satu istilah di kiri, lalu ketuk pasangannya di kanan.',
+    pairs:[['Jengis Khan','Pemersatu suku Mongol dan pendiri imperium Mongol (1206 M)'],
+           ['Al-Musta’sim','Khalifah Abbasiyah terakhir di Baghdad'],
+           ['Ain Jalut (1260 M)','Pertempuran saat pasukan Mamluk menghentikan laju Mongol'],
+           ['Ghazan Khan','Penguasa Mongol (Ilkhan) yang memeluk Islam']],
+    hint:'Pikirkan siapa pemersatu, siapa korban, di mana Mongol dihentikan, dan siapa yang akhirnya masuk Islam.',
+    note:'Setelah Baghdad jatuh, Mamluk menghentikan Mongol di Ain Jalut (1260 M). Kelak Ghazan Khan memeluk Islam sekitar tahun 1295 M.' }
+  ]},
+{ key:'usmani', theme:'usmani', title:'Konstantinopel, 1453 M', sub:'Dinasti Turki Usmani', hud:'Istanbul', keyName:'Kunci Usmani', nextName:'Gerbang Waktu',
+  story:'Dentum meriam menggema di tembok Konstantinopel. Seorang prajurit Usmani menunjukkan lembar kitab terakhir yang terkunci rapat. “Buktikan bahwa kau mengenal sejarah kami,” katanya.',
+  recap:['Usman bin Ertugrul mendirikan Usmani sekitar 1299 M. Muhammad al-Fatih menaklukkan Konstantinopel tahun 1453 M, sesuai kabar gembira dari Rasulullah saw.','Puncak kejayaan terjadi pada masa Sulaiman al-Qanuni di abad ke-16.','Kekhalifahan Usmani dihapus tahun 1924 M oleh Mustafa Kemal Ataturk.'],
+  puzzles:[
+  { type:'multi', q:'Pilih SEMUA pernyataan yang benar tentang Dinasti Usmani.', sub:'Ada lebih dari satu jawaban benar.',
+    options:[{t:'Dinasti Usmani didirikan oleh Usman bin Ertugrul sekitar tahun 1299 M.',ok:true},
+             {t:'Konstantinopel ditaklukkan oleh Sultan Muhammad al-Fatih pada tahun 1453 M.',ok:true},
+             {t:'Sultan Sulaiman al-Qanuni memimpin Usmani saat mencapai puncak kejayaan.',ok:true},
+             {t:'Setelah 1453 M, ibu kota Usmani dipindahkan ke Kairo.',ok:false},
+             {t:'Dinasti Usmani runtuh karena diserang pasukan Hulagu Khan.',ok:false}],
+    hint:'Dua pernyataan tertukar dengan peristiwa dinasti lain. Ingat nama kota yang menjadi pusat Usmani.',
+    note:'Konstantinopel menjadi ibu kota Usmani (Istanbul). Hulagu Khan menyerbu Baghdad pada 1258 M, jauh sebelum Usmani mencapai puncaknya.' },
+  { type:'order', q:'Susun peristiwa Usmani dari yang paling awal ke yang paling akhir.', sub:'Gunakan tombol ▲ dan ▼ untuk memindahkan.',
+    items:['Usman bin Ertugrul mendirikan Kesultanan Usmani','Sultan Muhammad al-Fatih menaklukkan Konstantinopel','Sultan Selim I menaklukkan Mesir dan menjadi pelindung Mekah-Madinah','Kekhalifahan Usmani dihapus oleh Mustafa Kemal Ataturk'],
+    hint:'Pendirian ada di awal. Penghapusan kekhalifahan terjadi di abad ke-20.',
+    note:'Urutannya: ± 1299 M → 1453 M → 1517 M → 1924 M.' },
+  { type:'word', q:'Bangunan megah berkubah di Istanbul ini dulu gereja Bizantium. Setelah 1453 M, Muhammad al-Fatih menjadikannya masjid. Apa namanya?', sub:'Tulis namanya, boleh dengan ejaan Turki atau Inggris.',
+    answers:['hagiasophia','hagiasofia','hagiasofya','ayasofya','ayasofia','ayasophia'], placeholder:'Nama bangunan…',
+    hint:'Dimulai dengan huruf H atau A. Artinya “Kebijaksanaan Suci”.',
+    note:'Hagia Sophia (Aya Sofya) menjadi masjid setelah penaklukan Konstantinopel tahun 1453 M.' }
+  ]},
+{ key:'akhir', theme:'akhir', title:'Gerbang Waktu', sub:'Ujian terakhir', hud:'Gerbang', keyName:'', nextName:'',
+  story:'Tiga kunci menyala di tanganmu. Gerbang terakhir hanya terbuka jika lorong waktu tersusun dengan benar.',
+  recap:[],
+  puzzles:[
+  { type:'order', q:'Susun peristiwa lintas dinasti ini dari yang paling awal ke yang paling akhir.', sub:'Gunakan tombol ▲ dan ▼ untuk memindahkan.',
+    items:['Ubaidillah al-Mahdi mendirikan Dinasti Fatimiyah','Jengis Khan menyatukan suku-suku Mongol','Hulagu Khan menghancurkan Baghdad','Usman bin Ertugrul mendirikan Kesultanan Usmani','Muhammad al-Fatih menaklukkan Konstantinopel'],
+    hint:'Fatimiyah berdiri paling awal. Usmani bangkit setelah Mongol menyerbu Baghdad.',
+    note:'Urutannya: 909 M → 1206 M → 1258 M → ± 1299 M → 1453 M.' }
+  ]}
+];
+
+/* ------------------------- State ------------------------- */
+let S=null, cur=null;
+const MAXP=10;
+const sum=a=>a.reduce((x,y)=>x+(y||0),0);
+const chScore=i=>sum(S.pts[i]);
+const total=()=>S.pts.reduce((t,a)=>t+sum(a),0);
+
+/* ------------------------- HUD ------------------------- */
+const KEY_SVG=(sz=20)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="20" cy="32" r="12" fill="#F2A93B" stroke="#17224D" stroke-width="4"/><circle cx="20" cy="32" r="4" fill="#17224D"/><path d="M32 32h26M48 32v10M57 32v8" stroke="#17224D" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`;
+function renderHud(){
+  if(!S){hud.hidden=true;return}
+  hud.hidden=false;
+  hud.innerHTML=`<div class="trail">${CH.map((c,i)=>{
+    const st=S.done[i]?'done':(S.ch===i?'now':'');
+    return `<div class="node ${st}"><div class="dot">${S.done[i]?KEY_SVG(22):''}</div><span>${esc(c.hud)}</span></div>`}).join('')}</div>
+    <div class="hudscore">${esc(S.nama)} · Kelas ${esc(S.kelas)} · Total poin <b id="tot">${total()}</b></div>`;
+}
+function updateTotal(){const t=$('#tot');if(t)t.textContent=total()}
+
+/* ------------------------- Layar ------------------------- */
+function show(html){panel.innerHTML=html;window.scrollTo({top:0});}
+
+function showStart(prefill={}){
+  S=null;renderHud();
+  setScene('start','Lorong Waktu','Petualangan puzzle PAI kelas 9');
+  show(`<h2>Kumpulkan tiga lembar kitab yang hilang</h2>
+    <p class="story">Kitab Peradaban Islam milik gurumu tercerai menjadi tiga lembar dan tersebar di lorong waktu: di Kairo, Baghdad, dan Istanbul. Pecahkan teka-teki sejarah dinasti Fatimiyah, Mongol, dan Turki Usmani untuk mendapatkan kuncinya.</p>
+    <form id="f" novalidate>
+      <label class="fld"><span>Nama lengkap</span><input id="nama" type="text" autocomplete="name" value="${esc(prefill.nama||'')}" maxlength="60"></label>
+      <div class="row">
+        <label class="fld"><span>Kelas</span><input id="kelas" type="text" placeholder="mis. 9A" value="${esc(prefill.kelas||'')}" maxlength="10"></label>
+        <label class="fld"><span>Nomor absen</span><input id="absen" type="number" min="1" max="60" inputmode="numeric" value="${esc(prefill.absen||'')}"></label>
+      </div>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit">Mulai petualangan</button>
+    </form>
+    <div class="howto"><strong>Cara bermain</strong>
+      <ul><li>Ada 10 teka-teki, masing-masing bernilai 10 poin. Nilai penuh 100.</li>
+      <li>Setiap jawaban salah mengurangi 3 poin, dan memakai petunjuk mengurangi 2 poin.</li>
+      <li>Nilaimu otomatis dikirim ke guru setelah petualangan selesai.</li></ul></div>`);
+  $('#f').addEventListener('submit',e=>{
+    e.preventDefault();
+    const nama=$('#nama').value.trim(), kelas=$('#kelas').value.trim(), absen=$('#absen').value.trim();
+    const err=$('#err');
+    if(nama.length<3){err.textContent='Tulis nama lengkapmu (minimal 3 huruf).';$('#nama').focus();return}
+    if(!kelas){err.textContent='Isi kelasmu, misalnya 9A.';$('#kelas').focus();return}
+    const n=Number(absen);
+    if(!absen||!Number.isInteger(n)||n<1||n>60){err.textContent='Nomor absen harus berupa angka 1–60.';$('#absen').focus();return}
+    S={nama,kelas,absen:n,ch:0,pi:0,pts:[[],[],[],[]],done:[false,false,false,false],start:Date.now(),sent:false};
+    showIntro();
+  });
+}
+
+function showIntro(){
+  const c=CH[S.ch];
+  setScene(c.theme,c.title,c.sub);renderHud();
+  const label=S.ch===3?'Hadapi gerbang':`Masuki ${c.hud}`;
+  show(`<h2>${esc(c.title)}</h2><p class="story">${esc(c.story)}</p>
+    <div class="actions"><button class="btn" id="go">${esc(label)}</button></div>`);
+  $('#go').onclick=()=>{S.pi=0;renderPuzzle()};
+  $('#go').focus();
+}
+
+function showChapterDone(){
+  const c=CH[S.ch];
+  renderHud();
+  show(`<div class="center"><div class="keyicon">${KEY_SVG(96)}</div>
+    <h2>${esc(c.keyName)} diperoleh!</h2>
+    <p class="sub">Poin bab ini: ${chScore(S.ch)} dari 30</p></div>
+    <p><strong>Catatan sejarah dari lembar kitab:</strong></p>
+    <ul class="recap">${c.recap.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>
+    <div class="actions"><button class="btn" id="nx">Lanjut ke ${esc(c.nextName)}</button></div>`);
+  $('#nx').onclick=()=>{S.ch++;S.pi=0;showIntro()};
+  $('#nx').focus();
+}
+
+/* ------------------------- Mesin teka-teki ------------------------- */
+const potential=()=>Math.max(1,MAXP-3*cur.wrong-(cur.hint?2:0));
+function fb(html,cls=''){const f=$('#fb');f.className='fb '+cls;f.innerHTML=html}
+function updatePot(){const v=$('#potv');if(v)v.textContent=potential()}
+
+function renderPuzzle(){
+  const c=CH[S.ch],p=c.puzzles[S.pi];
+  cur={wrong:0,hint:false,done:false,p};
+  renderHud();
+  show(`<div class="qhead"><span>${S.ch===3?'Ujian terakhir':`Teka-teki ${S.pi+1} dari ${c.puzzles.length}`}</span>
+      <span class="pot">Nilai teka-teki: <b id="potv">${MAXP}</b></span></div>
+    <h2 class="q">${esc(p.q)}</h2>
+    ${p.sub?`<p class="sub">${esc(p.sub)}</p>`:''}
+    <div id="board" class="board"></div>
+    <div id="hintbox" class="hintbox" hidden></div>
+    <div id="fb" class="fb" role="status" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn ghost" id="hintBtn" type="button">Petunjuk (−2 poin)</button>
+      <button class="btn" id="checkBtn" type="button">Periksa jawaban</button>
+      <button class="btn" id="nextBtn" type="button" hidden>${S.ch===3?'Lihat hasil':(S.pi===c.puzzles.length-1?'Ambil kunci':'Teka-teki berikutnya')}</button>
+    </div>`);
+  $('#hintBtn').onclick=()=>{
+    if(cur.done||cur.hint)return;
+    cur.hint=true;$('#hintBtn').disabled=true;
+    const h=$('#hintbox');h.hidden=false;h.textContent='Petunjuk: '+p.hint;updatePot();
+  };
+  $('#nextBtn').onclick=nextPuzzle;
+  if(p.type==='choice')$('#checkBtn').hidden=true;
+  BUILD[p.type](p);
+}
+
+function wrongAnswer(msg){
+  cur.wrong++;updatePot();fb(msg,'bad');
+  const b=$('#board');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');
+}
+function solved(){
+  cur.done=true;
+  const pts=potential();
+  S.pts[S.ch][S.pi]=pts;
+  const b=$('#board');
+  b.querySelectorAll('input,button').forEach(x=>x.disabled=true);
+  $('#checkBtn').hidden=true;$('#hintBtn').hidden=true;
+  const nb=$('#nextBtn');nb.hidden=false;nb.focus();
+  fb(`<strong>Tepat! +${pts} poin.</strong> ${esc(cur.p.note)}`,'ok');
+  updateTotal();
+}
+function nextPuzzle(){
+  const c=CH[S.ch];
+  if(S.pi<c.puzzles.length-1){S.pi++;renderPuzzle();return}
+  S.done[S.ch]=true;
+  if(S.ch===3)showResult();else showChapterDone();
+}
+
+const BUILD={
+  choice(p){
+    const board=$('#board');
+    board.innerHTML=shuffle(p.options.map((_,i)=>i)).map(i=>`<button type="button" class="opt" data-i="${i}">${esc(p.options[i])}</button>`).join('');
+    board.onclick=e=>{
+      const b=e.target.closest('.opt');if(!b||cur.done||b.disabled)return;
+      if(+b.dataset.i===p.answer){b.classList.add('ok');solved()}
+      else{b.classList.add('no');b.disabled=true;wrongAnswer('Belum tepat. Coba pilihan lain.')}
+    };
+  },
+  multi(p){
+    const board=$('#board'),sel=new Set();
+    board.innerHTML=shuffle(p.options.map((_,i)=>i)).map(i=>`<button type="button" class="opt chk" aria-pressed="false" data-i="${i}">${esc(p.options[i].t)}</button>`).join('');
+    board.onclick=e=>{
+      const b=e.target.closest('.opt');if(!b||cur.done)return;
+      const i=+b.dataset.i;
+      if(sel.has(i)){sel.delete(i);b.setAttribute('aria-pressed','false')}else{sel.add(i);b.setAttribute('aria-pressed','true')}
+    };
+    $('#checkBtn').onclick=()=>{
+      if(!sel.size){fb('Pilih minimal satu pernyataan dulu.');return}
+      const okSet=p.options.map((o,i)=>o.ok?i:-1).filter(i=>i>=0);
+      if(okSet.length===sel.size&&okSet.every(i=>sel.has(i))){
+        board.querySelectorAll('.opt').forEach(b=>{if(p.options[+b.dataset.i].ok){b.classList.add('ok')}});
+        solved();
+      }else wrongAnswer('Belum tepat: ada pernyataan benar yang terlewat, atau ada pernyataan salah yang terpilih.');
+    };
+  },
+  word(p){
+    const board=$('#board');
+    board.innerHTML=`<label class="wl" for="wi">Jawabanmu</label><input id="wi" class="wi" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(p.placeholder||'Ketik di sini')}">`;
+    const wi=$('#wi'),chk=$('#checkBtn');
+    wi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();chk.click()}});
+    chk.onclick=()=>{
+      const v=norm(wi.value);
+      if(!v){fb('Ketik jawabanmu dulu.');return}
+      if(p.answers.includes(v))solved();
+      else wrongAnswer('Belum tepat. Periksa ejaanmu atau gunakan petunjuk.');
+    };
+  },
+  match(p){
+    const board=$('#board'),chk=$('#checkBtn'),n=p.pairs.length;
+    const rightOrder=shuffle([...Array(n).keys()]);
+    const pair={},locked=new Set();let sel=null;
+    function draw(){
+      board.innerHTML=`<div class="match"><div class="mcol">${
+        p.pairs.map((pr,i)=>`<button type="button" class="mitem ${pair[i]!==undefined?'p'+i:''} ${locked.has(i)?'ok':''} ${sel===i?'sel':''}" data-s="l" data-i="${i}">${esc(pr[0])}</button>`).join('')
+      }</div><div class="mcol">${
+        rightOrder.map(j=>{
+          const li=Object.keys(pair).find(k=>pair[k]===j);
+          return `<button type="button" class="mitem ${li!==undefined?'p'+li:''} ${li!==undefined&&locked.has(+li)?'ok':''}" data-s="r" data-i="${j}">${esc(p.pairs[j][1])}</button>`
+        }).join('')
+      }</div></div>`;
+      chk.disabled=Object.keys(pair).length<n||cur.done;
+    }
+    board.onclick=e=>{
+      const b=e.target.closest('.mitem');if(!b||cur.done)return;
+      const i=+b.dataset.i,side=b.dataset.s;
+      if(side==='l'){
+        if(locked.has(i))return;
+        if(pair[i]!==undefined){delete pair[i];sel=null}else sel=(sel===i?null:i);
+      }else{
+        const li=Object.keys(pair).find(k=>pair[k]===i);
+        if(li!==undefined){if(locked.has(+li))return;delete pair[li]}
+        else if(sel!==null){pair[sel]=i;sel=null}
+        else{fb('Pilih dulu satu istilah di kolom kiri.');return}
+      }
+      fb('');draw();
+    };
+    chk.onclick=()=>{
+      let bad=0;
+      for(const l of Object.keys(pair)){
+        if(pair[l]===+l)locked.add(+l);else{bad++;delete pair[l]}
+      }
+      draw();
+      if(bad===0)solved();
+      else wrongAnswer(`${bad} pasangan belum tepat dan dilepas. Pasangan yang benar (hijau) tetap terkunci.`);
+    };
+    draw();
+  },
+  order(p){
+    const board=$('#board'),chk=$('#checkBtn'),n=p.items.length;
+    let ord=shuffle([...Array(n).keys()]);
+    while(ord.every((v,i)=>v===i))ord=shuffle(ord);
+    let marks=[];
+    function draw(){
+      board.innerHTML=`<ol class="olist">${ord.map((idx,pos)=>`<li class="${marks[pos]?'ok':''}"><span class="pos">${pos+1}</span><span class="t">${esc(p.items[idx])}</span><span class="mv"><button type="button" aria-label="Naikkan" data-m="-1" data-p="${pos}" ${pos===0?'disabled':''}>▲</button><button type="button" aria-label="Turunkan" data-m="1" data-p="${pos}" ${pos===n-1?'disabled':''}>▼</button></span></li>`).join('')}</ol>`;
+    }
+    board.onclick=e=>{
+      const b=e.target.closest('button[data-m]');if(!b||cur.done)return;
+      const pos=+b.dataset.p,d=+b.dataset.m;
+      [ord[pos],ord[pos+d]]=[ord[pos+d],ord[pos]];
+      marks=[];draw();
+      const nb=board.querySelector(`button[data-p="${pos+d}"][data-m="${d}"]:not(:disabled)`)||board.querySelector(`button[data-p="${pos+d}"]:not(:disabled)`);
+      if(nb)nb.focus();
+    };
+    chk.onclick=()=>{
+      marks=ord.map((idx,pos)=>idx===pos);
+      const good=marks.filter(Boolean).length;
+      draw();
+      if(good===n)solved();
+      else wrongAnswer(`${good} dari ${n} peristiwa sudah berada di urutan yang benar (ditandai hijau).`);
+    };
+    draw();
+  }
+};
+
+/* ------------------------- Hasil & pengiriman ------------------------- */
+function buildRecord(){
+  return {
+    nama:S.nama,kelas:S.kelas,absen:S.absen,
+    fatimiyah:chScore(0),mongol:chScore(1),usmani:chScore(2),akhir:chScore(3),
+    total:total(),durasi:Math.round((Date.now()-S.start)/1000)
+  };
+}
+function backupLocal(rec){
+  try{
+    const arr=JSON.parse(localStorage.getItem('pai9_hasil')||'[]');
+    arr.push({...rec,waktu:new Date().toISOString()});
+    localStorage.setItem('pai9_hasil',JSON.stringify(arr));
+  }catch(e){}
+}
+async function sendResult(rec){
+  const box=$('#sendbox'),retry=$('#retry');
+  if(!CONFIG.SCRIPT_URL){
+    box.className='send bad';
+    box.textContent='Nilai belum terkirim: guru belum mengisi SCRIPT_URL di file game. Unduh hasilmu sebagai CSV dan serahkan ke gurumu.';
+    return;
+  }
+  box.className='send';box.textContent='Mengirim nilai ke Google Spreadsheet…';
+  if(retry)retry.hidden=true;
+  try{
+    await fetch(CONFIG.SCRIPT_URL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams(rec).toString()
+    });
+    S.sent=true;
+    box.className='send ok';box.textContent='Nilaimu sudah dikirim ke Google Spreadsheet gurumu.';
+  }catch(err){
+    box.className='send bad';
+    box.textContent='Nilai gagal terkirim. Periksa koneksi internetmu, lalu coba kirim ulang.';
+    if(retry)retry.hidden=false;
+  }
+}
+function downloadCsv(rec){
+  const head=['Nama','Kelas','No Absen','Fatimiyah','Mongol','Usmani','Gerbang Akhir','Nilai Total','Durasi (detik)'];
+  const row=[rec.nama,rec.kelas,rec.absen,rec.fatimiyah,rec.mongol,rec.usmani,rec.akhir,rec.total,rec.durasi];
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const csv='\ufeff'+head.map(q).join(',')+'\n'+row.map(q).join(',');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='hasil-pai9-'+rec.nama.replace(/\s+/g,'-').toLowerCase()+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+function showResult(){
+  renderHud();
+  setScene('akhir','Petualangan selesai','Tiga kunci telah terkumpul');
+  const rec=buildRecord();
+  backupLocal(rec);
+  const t=rec.total;
+  const rank=t>=90?'Cendekiawan Peradaban':t>=75?'Penjelajah Handal':t>=60?'Penjelajah Muda':'Terus Belajar, Sahabat!';
+  const bars=[['Fatimiyah',rec.fatimiyah,30],['Mongol',rec.mongol,30],['Usmani',rec.usmani,30],['Gerbang akhir',rec.akhir,10]];
+  show(`<div class="center"><div class="idrow">${esc(S.nama)} · Kelas ${esc(S.kelas)} · Absen ${esc(S.absen)}</div>
+    <div class="bignum">${t}<small> / 100</small></div>
+    <div class="rank">${rank}</div></div>
+    <div class="bars">${bars.map(b=>`<div class="bar"><span>${b[0]}</span><div class="track"><div class="fill" style="width:${Math.round(b[1]/b[2]*100)}%"></div></div><span>${b[1]}/${b[2]}</span></div>`).join('')}</div>
+    <div id="sendbox" class="send" role="status" aria-live="polite"></div>
+    <div class="hikmah"><strong>Hikmah:</strong> Ilmu pengetahuan (Al-Azhar, Dar al-Hikmah), persatuan, dan kepemimpinan yang adil membuat peradaban Islam maju. Perpecahan dan kelalaian menjaga ilmu melemahkan umat. Mari meneladani semangat belajar, kerja keras, dan persatuan.</div>
+    <div class="actions">
+      <button class="btn" id="retry" hidden>Kirim ulang nilai</button>
+      <button class="btn ghost" id="csv">Unduh hasil (CSV)</button>
+      <button class="btn ghost" id="again">Main lagi</button>
+    </div>`);
+  $('#retry').onclick=()=>sendResult(rec);
+  $('#csv').onclick=()=>downloadCsv(rec);
+  $('#again').onclick=()=>showStart({nama:S.nama,kelas:S.kelas,absen:S.absen});
+  sendResult(rec);
+}
+
+showStart();
+</script>
+</body>
+</html>
